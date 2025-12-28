@@ -13,8 +13,8 @@ metrics:
   capacity: 300/day
   uptime: 99.9%
   users: 1,000+
-techStack: [React 18, Redux Toolkit, Node.js, Express, Vite, DaisyUI, Tailwind CSS, Alan AI, NewsAPI, GNews, YouTube API]
-badges: [React, Node.js, AI, Voice, News, API Integration, Production]
+techStack: [React 18, Redux Toolkit, Node.js, Express, Vite, DaisyUI, Tailwind CSS, Web Speech API, NewsAPI, YouTube API]
+badges: [React, Node.js, Voice, News, API Integration, Production]
 gallery:
   - src: https://cdn.jsdelivr.net/gh/AmanSuryavanshi-1/portfolio-assets@main/AV-NewsStream/AV-NewsStream.webp
     alt: Desktop Homepage
@@ -36,7 +36,7 @@ gallery:
 
 ---
 
-AV NewsStream is a **production-ready, enterprise-grade news aggregation platform** that solves the critical challenge of API rate limiting through intelligent key rotation across 9 API keys. It aggregates real-time news from NewsAPI, GNews, and YouTube into a unified feed with advanced duplicate detection, 10-minute response caching, and voice-enabled navigation via Alan AI—reducing API calls by 90% while maintaining seamless user experience.
+AV NewsStream is a **production-ready, enterprise-grade news aggregation platform** that solves the critical challenge of API rate limiting through intelligent key rotation across multiple API keys. It aggregates real-time news from NewsAPI and YouTube into a unified feed with advanced duplicate detection, 10-minute response caching, and text-to-speech article reading via Web Speech API—reducing API calls by 90% while maintaining seamless user experience.
 
 ---
 
@@ -77,7 +77,7 @@ Building a real-time news aggregation platform presents a fundamental challenge:
 
 | Challenge | Impact |
 |-----------|--------|
-| **Rate Limiting** | NewsAPI and GNews limit to 100 requests/day per key |
+| **Rate Limiting** | NewsAPI limits to 100 requests/day per key |
 | **Multi-Source Aggregation** | Different APIs return inconsistent data schemas |
 | **Duplicate Content** | Same story appears across multiple sources |
 | **API Failures** | Rate limits cause service interruptions |
@@ -189,11 +189,12 @@ I engineered a **dual-architecture system** that separates concerns and maximize
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Node.js | 18+ | Runtime environment |
-| Express | 4.19.2 | API server framework |
-| node-fetch | 3.3.2 | HTTP client |
-| dotenv | 16.4.5 | Environment variables |
-| CORS | 2.8.5 | Cross-origin handling |
+| Node.js | Backend Runtime | API Proxy, Environment Config |
+| Express | Backend Framework | Routing, Middleware |
+| Web Speech API | Browser API | Text-to-Speech (TTS) |
+| NewsAPI | External Data | Top Headlines (US/Global) |
+| GNews | External Data | Global News Coverage |
+| YouTube API | External Data | Video News Content |
 
 ### External APIs
 
@@ -201,16 +202,14 @@ I engineered a **dual-architecture system** that separates concerns and maximize
 |-----|------|-------------|------|
 | NewsAPI | Free | 100/key | 3 |
 | GNews | Free | 100/key | 3 |
-| YouTube Data API v3 | Free | 10,000 units/key | 3 |
+| YouTube Data API v3 | Free | 10,000 units/key | 2 |
 
 ### Additional Libraries
 
 | Library | Purpose |
 |---------|---------|
-| Alan AI SDK | Voice command integration |
 | Web Speech API | Text-to-speech synthesis |
 | react-icons | UI iconography |
-| concurrently | Parallel script execution |
 
 ---
 
@@ -221,10 +220,10 @@ I engineered a **dual-architecture system** that separates concerns and maximize
 | Capability | Implementation |
 |------------|----------------|
 | **Multi-Source Aggregation** | NewsAPI + GNews + YouTube unified feed |
-| **Smart Key Rotation** | Automatic failover across 9 keys |
-| **10-Minute Caching** | In-memory cache with TTL management |
-| **Duplicate Detection** | Content hashing algorithm |
-| **Voice Navigation** | Alan AI custom intents |
+| **Duplicate Detection** | Content hashing algorithm to filter repeats |
+| **Text-to-Speech** | Listen to any article with native browser voice |
+| **Smart Caching** | 10-minute in-memory cache to save API calls |
+| **User Personalization** | Save articles/videos, separate "Notes" section |
 | **Article Reading** | Web Speech API TTS |
 | **Save for Later** | Redux-persisted bookmarks |
 | **Category Filtering** | 7 news categories |
@@ -263,34 +262,23 @@ User Request Flow
      │  Cache   │  Miss     │
      │   Hit ◄──┴──►        │
      └────┬────────────┬────┘
-          │            │
-          ▼            ▼
-    ┌──────────┐  ┌───────────────────┐
-    │ Return   │  │ Express Backend   │
-    │ Cached   │  │ /api/news         │
-    │ Data     │  └─────────┬─────────┘
-    └──────────┘            │
-                            ▼
-                 ┌─────────────────────┐
-                 │   ApiKeyManager.js  │
-                 │  ┌───────────────┐  │
-                 │  │ Get Next Key  │  │
-                 │  │ (Round Robin) │  │
-                 │  └───────┬───────┘  │
-                 │          │          │
-                 │  ┌───────┴───────┐  │
-                 │  │ Health Check  │  │
-                 │  │ Cooldown Mgmt │  │
-                 │  └───────────────┘  │
-                 └──────────┬──────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              │             │             │
-              ▼             ▼             ▼
-        ┌─────────┐   ┌─────────┐   ┌─────────┐
-        │ NewsAPI │   │  GNews  │   │ YouTube │
-        │ Key 1-3 │   │ Key 1-3 │   │ Key 1-3 │
-        └─────────┘   └─────────┘   └─────────┘
+          ▼                 ▼                 ▼
+   ┌───────────┐     ┌───────────┐     ┌───────────┐
+   │  NewsAPI  │     │   GNews   │     │  YouTube  │
+   │  (3 Keys) │     │  (3 Keys) │     │  (2 Keys) │
+   └─────┬─────┘     └─────┬─────┘     └─────┬─────┘
+         │                 │                 │
+         ▼                 ▼                 ▼
+   ┌───────────────────────────────────────────────┐
+   │             Express Proxy Server              │
+   │           (Rate Limit Management)             │
+   └───────────────────────┬───────────────────────┘
+                           │
+                           ▼
+                  ┌──────────────────┐
+                  │  React Frontend  │
+                  │ (Redux + Cache)  │
+                  └──────────────────┘
 ```
 
 ### Project Structure
@@ -417,22 +405,19 @@ const removeDuplicates = (articles) => {
 };
 ```
 
-### 4. Voice Control with Alan AI
+### 4. Text-to-Speech (TTS)
+Instead of complex external AI dependencies, the project utilizes the **Web Speech API** for native, low-latency text-to-speech conversion. Users can listen to any article title and description with a single click.
 
-Hands-free navigation for accessibility:
-
-| Voice Command | Action |
-|---------------|--------|
-| "Go to technology" | Navigate to tech category |
-| "Search for AI news" | Execute search query |
-| "Read this article" | Trigger TTS for article |
-| "Go to saved" | Navigate to bookmarks |
-| "Go home" | Return to homepage |
-
-### 5. Text-to-Speech Article Reading
-
-Custom hook for article narration:
-
+```javascript
+/* src/utils/useTTS.jsx */
+const startReading = () => {
+   // ...
+   speechRef.current = new SpeechSynthesisUtterance();
+   speechRef.current.voice = voicesRef.current.find(v => v.name === "Google US English");
+   speechRef.current.text = `Article ${currentIndex + 1}: ${articles[currentIndex].title}`;
+   window.speechSynthesis.speak(speechRef.current);
+};
+```
 ```javascript
 // useTTS.jsx - Text-to-speech hook
 const useTTS = () => {
@@ -700,6 +685,10 @@ VITE_NEWS_API_KEY_3=your_key_3
 VITE_GNEWS_API_KEY_1=your_key_1
 VITE_GNEWS_API_KEY_2=your_key_2
 VITE_GNEWS_API_KEY_3=your_key_3
+
+# YouTube Keys (2 keys for rotation)
+VITE_YT_API_KEY_1=your_key_1
+VITE_YT_API_KEY_2=your_key_2
 
 # YouTube Keys (3 keys for rotation)
 VITE_YT_API_KEY_1=your_key_1

@@ -1,6 +1,6 @@
 # 🎯 AV NewsStream
 
-**Production-ready news aggregation platform with intelligent API key rotation, 10-minute caching, and voice control.**
+**Production-ready news aggregation platform with intelligent API key rotation, 10-minute caching, and text-to-speech.**
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-avnews.vercel.app-brightgreen)](https://avnews.vercel.app/)
 [![Technical Docs](https://img.shields.io/badge/📖_Technical_Docs-Read_More-blue)](./docs/AV-NEWSSTREAM-TECHNICAL-DOCUMENTATION.md)
@@ -13,7 +13,7 @@
 | Metric | Value | Description |
 |--------|-------|-------------|
 | **API Reduction** | 90% | Through intelligent caching |
-| **Daily Capacity** | 300+/day | Across 9 rotated keys |
+| **Daily Capacity** | 300+/day | Across 8 rotated keys |
 | **Uptime** | 99.9% | Zero downtime during limits |
 | **Users** | 1,000+ | Production-ready traffic |
 
@@ -23,12 +23,11 @@
 
 | Feature | Description |
 |---------|-------------|
-| **Smart Key Rotation** | Auto-rotate across 9 API keys (3 per service) |
+| **Smart Key Rotation** | Auto-rotate across 8 API keys (3/3/2 split) |
 | **10-Min Caching** | Reduces API calls by 90% |
 | **Multi-Source Feed** | NewsAPI + GNews + YouTube unified |
 | **Duplicate Detection** | Content hashing algorithm |
-| **Voice Control** | Alan AI hands-free navigation |
-| **Text-to-Speech** | Listen to articles |
+| **Text-to-Speech** | Listen to articles via Web Speech API |
 | **Save for Later** | Redux-persisted bookmarks |
 | **Graceful Degradation** | Works when APIs fail |
 
@@ -41,7 +40,7 @@
 | **Frontend** | React 18, Redux Toolkit, Vite, Tailwind CSS, DaisyUI |
 | **Backend** | Node.js, Express, CORS |
 | **APIs** | NewsAPI, GNews, YouTube Data API |
-| **Voice** | Alan AI SDK, Web Speech API |
+| **Voice** | Web Speech API (Native TTS) |
 | **Deploy** | Vercel |
 
 ---
@@ -91,7 +90,7 @@ AV-News-Stream/
 |---------|------|---------|----------------|
 | NewsAPI | 3 | 100/day | **300/day** |
 | GNews | 3 | 100/day | **300/day** |
-| YouTube | 3 | 10,000 units | **30,000/day** |
+| YouTube | 2 | 10,000 units | **20,000/day** |
 
 **How limits are managed:** 10-min caching (90% reduction) + smart key rotation + 15-min cooldown on failures.
 
